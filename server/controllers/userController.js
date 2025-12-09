@@ -1,5 +1,5 @@
-// controllers/userController.js - usando Supabase diretamente como nas rotas
-const { supabase } = require('../config/supabaseClient');
+// controllers/userController.js - Controlador de usuários para FikiFit
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
 // @desc    Obter todos os usuários
@@ -7,18 +7,11 @@ const bcrypt = require('bcryptjs');
 // @access  Público
 const getAllUsers = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*');
-
-    if (error) {
-      return res.status(500).json({ msg: error.message });
-    }
-
-    res.json(data);
+    const users = await User.findAll();
+    res.json(users);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no Servidor');
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -29,23 +22,16 @@ const getUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const user = await User.findById(id);
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({ msg: 'Usuário não encontrado' });
-      }
-      return res.status(500).json({ msg: error.message });
+    if (!user) {
+      return res.status(404).json({ msg: 'Usuário não encontrado' });
     }
 
-    res.json(data);
+    res.json(user);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no Servidor');
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -54,114 +40,84 @@ const getUser = async (req, res) => {
 // @access  Público
 const createUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const {
+      name, email, password, user_type, telefone, data_nascimento, altura, objetivo,
+      especializacao, cref, descricao, experiencia_anos
+    } = req.body;
 
-    // Validação de entrada simples
+    // Validação de entrada
     if (!name || !email || !password) {
-      return res.status(400).json({ msg: 'Por favor, preencha todos os campos obrigatórios' });
+      return res.status(400).json({ msg: 'Por favor, preencha os campos obrigatórios: nome, email e senha' });
     }
 
-    // Validação simples de formato de email
+    // Validação de formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ msg: 'Por favor, forneça um email válido' });
     }
 
     // Verificar se o usuário já existe
-    const { data: existingUser, error: fetchError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
-
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      // PGRST116 significa que nenhum registro foi encontrado, o que é esperado
-      return res.status(500).json({ msg: fetchError.message });
-    }
-
+    const existingUser = await User.findByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ msg: 'Usuário já existe' });
+      return res.status(400).json({ msg: 'Usuário com este email já existe' });
     }
 
-    // Criptografa a senha antes de salvar
+    // Criptografar a senha
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const { data, error } = await supabase
-      .from('users')
-      .insert([
-        {
-          name,
-          email,
-          password: hashedPassword,
-          user_type: 'aluno' // Valor padrão
-        }
-      ])
-      .select()
-      .single();
+    // Preparar dados para criação
+    const userData = {
+      name,
+      email,
+      password: hashedPassword,
+      user_type: user_type || 'aluno',
+      telefone,
+      data_nascimento,
+      altura,
+      objetivo,
+      especializacao,
+      cref,
+      descricao,
+      experiencia_anos
+    };
 
-    if (error) {
-      return res.status(500).json({ msg: error.message });
-    }
-
-    res.status(201).json(data);
+    const newUser = await User.create(userData);
+    res.status(201).json(newUser);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no Servidor');
+    res.status(500).json({ msg: err.message });
   }
 };
 
 // @desc    Atualizar usuário
-// @route   PUT /api/users/:id
+// @route   PUT /api/users/update/:id
 // @access  Público
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, password, userType } = req.body;
+    const updateData = { ...req.body };
 
-    // Validação simples de formato de email se for fornecido
-    if (email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return res.status(400).json({ msg: 'Por favor, forneça um email válido' });
-      }
-    }
+    // Remover campos sensíveis que não devem ser atualizados diretamente
+    delete updateData.password;
+    delete updateData.email; // Para simplificar, email não pode ser alterado
 
-    // Validação de senha se for fornecida
-    if (password && password.length < 6) {
-      return res.status(400).json({ msg: 'A senha deve ter pelo menos 6 caracteres' });
-    }
-
-    const updateData = {};
-    if (name) updateData.name = name;
-    if (email) updateData.email = email;
-    if (password) {
-      // Criptografa a senha antes de atualizar
+    // Se uma nova senha for fornecida, criptografar
+    if (req.body.newPassword) {
       const saltRounds = 10;
-      updateData.password = await bcrypt.hash(password, saltRounds);
-    }
-    if (userType) updateData.user_type = userType;
-
-    // Verificar se há dados para atualizar
-    if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({ msg: 'Forneça pelo menos um campo para atualizar' });
+      updateData.password = await bcrypt.hash(req.body.newPassword, saltRounds);
     }
 
-    const { data, error } = await supabase
-      .from('users')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      return res.status(400).json({ msg: error.message });
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ msg: 'Usuário não encontrado' });
     }
 
-    res.json(data);
+    const updatedUser = await user.update(updateData);
+    res.json(updatedUser);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no Servidor');
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -172,54 +128,40 @@ const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { error } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      return res.status(400).json({ msg: error.message });
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ msg: 'Usuário não encontrado' });
     }
 
-    res.json({ message: 'Usuário deletado com sucesso' });
+    await user.delete();
+    res.json({ msg: 'Usuário deletado com sucesso' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no Servidor');
+    res.status(500).json({ msg: err.message });
   }
 };
 
-const postaUser = async (req, res) => {
+// @desc    Obter usuários por tipo
+// @route   GET /api/users/type/:user_type
+// @access  Público
+const getUsersByType = async (req, res) => {
   try {
-    const userData = req.body;
+    const { user_type } = req.params;
 
-    // Validação básica
-    if (!userData || Object.keys(userData).length === 0) {
-      return res.status(400).json({ msg: 'Dados do usuário são obrigatórios' });
+    if (user_type === 'professor') {
+      const personalTrainers = await User.findPersonalTrainers();
+      res.json(personalTrainers);
+    } else if (user_type === 'aluno') {
+      const alunos = await User.findAlunos();
+      res.json(alunos);
+    } else {
+      return res.status(400).json({ msg: 'Tipo de usuário inválido. Use "professor" ou "aluno"' });
     }
-
-    const { data, error } = await supabase
-      .from('users')
-      .insert([userData])
-      .select()
-      .single();
-
-    if (error) {
-      // 🛑 Ocorreu um erro na requisição
-      console.error('Erro ao postar usuário:', error.message);
-      return res.status(500).json({ msg: error.message });
-    }
-
-    // ✅ Requisição bem-sucedida
-    console.log('Usuário criado com sucesso:', data);
-    res.status(201).json(data);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no Servidor');
+    res.status(500).json({ msg: err.message });
   }
 };
-
-
-
 
 module.exports = {
   getAllUsers,
@@ -227,5 +169,5 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
-  postaUser
+  getUsersByType
 };

@@ -1,5 +1,5 @@
-// controllers/authController.js - usando Supabase diretamente como nas rotas
-const { supabase } = require('../config/supabaseClient');
+// controllers/authController.js - Controlador de autenticação para FikiFit
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
 // @desc    Registrar usuário
@@ -7,56 +7,62 @@ const bcrypt = require('bcryptjs');
 // @access  Público
 const register = async (req, res) => {
   try {
-    const { name, email, password, userType } = req.body;
+    const {
+      name, email, password, user_type, telefone, data_nascimento, altura, objetivo,
+      especializacao, cref, descricao, experiencia_anos
+    } = req.body;
 
-    // Verifica se o usuário já existe usando Supabase
-    const { data: existingUser, error: fetchError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
-
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      // PGRST116 significa que nenhum registro foi encontrado, o que é esperado
-      return res.status(500).json({ error: fetchError.message });
+    // Validação de entrada
+    if (!name || !email || !password) {
+      return res.status(400).json({ msg: 'Por favor, preencha os campos obrigatórios: nome, email e senha' });
     }
 
+    // Validação de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ msg: 'Por favor, forneça um email válido' });
+    }
+
+    // Verificar se o usuário já existe
+    const existingUser = await User.findByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ error: 'Usuário já existe' });
+      return res.status(400).json({ msg: 'Usuário com este email já existe' });
     }
 
-    // Criptografa a senha
+    // Criptografar a senha
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Cria usuário com tipo (aluno ou personal trainer) usando Supabase
-    const { data: newUser, error: insertError } = await supabase
-      .from('users')
-      .insert([
-        {
-          name,
-          email,
-          password: hashedPassword,
-          user_type: userType || 'aluno'
-        }
-      ])
-      .select()
-      .single();
+    // Preparar dados para criação
+    const userData = {
+      name,
+      email,
+      password: hashedPassword,
+      user_type: user_type || 'aluno',
+      telefone,
+      data_nascimento,
+      altura,
+      objetivo,
+      especializacao,
+      cref,
+      descricao,
+      experiencia_anos
+    };
 
-    if (insertError) {
-      return res.status(500).json({ error: insertError.message });
-    }
+    const newUser = await User.create(userData);
 
-    // Retorna dados do usuário sem token JWT
-    res.json({
+    // Retorna dados do usuário
+    res.status(201).json({
       id: newUser.id,
       name: newUser.name,
       email: newUser.email,
-      userType: newUser.user_type
+      user_type: newUser.user_type,
+      telefone: newUser.telefone,
+      foto_perfil: newUser.foto_perfil
     });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no Servidor');
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -67,52 +73,39 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Obtém usuário do banco de dados usando Supabase
-    const { data: user, error: fetchError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
+    // Validação de entrada
+    if (!email || !password) {
+      return res.status(400).json({ msg: 'Por favor, forneça email e senha' });
+    }
 
-    if (fetchError || !user) {
-      return res.status(400).json({ error: 'Credenciais inválidas' });
+    // Obtém usuário do banco de dados
+    const user = await User.findByEmail(email);
+    if (!user) {
+      return res.status(400).json({ msg: 'Credenciais inválidas' });
     }
 
     // Compara senha
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ error: 'Credenciais inválidas' });
+      return res.status(400).json({ msg: 'Credenciais inválidas' });
     }
 
-    // Retorna dados do usuário em vez de token
+    // Retorna dados do usuário
     res.json({
       id: user.id,
       name: user.name,
       email: user.email,
-      userType: user.user_type
+      user_type: user.user_type,
+      telefone: user.telefone,
+      foto_perfil: user.foto_perfil
     });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no Servidor');
-  }
-};
-
-// @desc    Obter usuário autenticado (não necessário sem JWT)
-// @route   GET /api/auth
-// @access  Público (não requer token)
-const getAuthUser = async (req, res) => {
-  try {
-    // Agora esta rota não faz sentido sem JWT, então podemos removê-la ou adaptá-la
-    // Por enquanto, retornaremos um erro para indicar que esta rota é obsoleta
-    res.status(404).json({ msg: 'Rota não suportada sem sistema JWT' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Erro no Servidor');
+    res.status(500).json({ msg: err.message });
   }
 };
 
 module.exports = {
   login,
-  register,
-  getAuthUser
+  register
 };

@@ -7,18 +7,13 @@ const {
   createUser,
   updateUser,
   deleteUser,
-  postaUser
+  getUsersByType
 } = require('../controllers/userController');
 
 // ==========================
 //        CREATE USER
 // ==========================
 router.post('/', createUser);
-
-// ==========================
-//        CREATE USER ALTERNATIVE
-// ==========================
-router.post('/create', postaUser);
 
 // ==========================
 //        LIST USERS
@@ -31,25 +26,9 @@ router.get('/', getAllUsers);
 router.get('/:id', getUser);
 
 // ==========================
-//     GET USER BY EMAIL
+//     GET USER BY TYPE
 // ==========================
-router.get('/email/:email', async (req, res) => {
-  const { email } = req.params;
-
-  // Esta rota específica faz uma consulta direta ao Supabase
-  // pois não temos um controller específico para email
-  const { supabase } = require('../config/supabaseClient');
-
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', email)
-    .single();
-
-  if (error) return res.status(500).json({ error: error.message });
-
-  res.json(data);
-});
+router.get('/type/:user_type', getUsersByType);
 
 // ==========================
 //        UPDATE USER

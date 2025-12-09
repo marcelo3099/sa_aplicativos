@@ -1,6 +1,6 @@
-// config/api.js
+// config/api.js - Configuração da API
 const API_CONFIG = {
-  // ATENÇÃO: Substitua este IP pelo IP do seu computador na rede!
+  // ATENÇÃO: Substitua este IP pelo IP do seu computador na rede local!
   // Para descobrir seu IP: abra cmd e digite "ipconfig"
   // Procure por "Endereço IPv4" na sua conexão ativa
   BASE_URL: 'http://10.3.117.176:5000', // Exemplo comum, altere conforme necessário
