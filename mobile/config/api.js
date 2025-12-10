@@ -3,7 +3,7 @@ const API_CONFIG = {
   // ATENÇÃO: Substitua este IP pelo IP do seu computador na rede local!
   // Para descobrir seu IP: abra cmd e digite "ipconfig"
   // Procure por "Endereço IPv4" na sua conexão ativa
-  BASE_URL: 'http://10.3.117.176:5000', // Exemplo comum, altere conforme necessário
+  BASE_URL: 'http://10.3.119.150:5000', // IP atualizado conforme resultado do ipconfig
 
   // Para testar localmente com emulador Android Studio
   // BASE_URL: 'http://10.0.2.2:5000',

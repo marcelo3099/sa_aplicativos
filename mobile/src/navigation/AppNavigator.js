@@ -65,8 +65,8 @@ const AlunoTabs = () => {
 
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#2196F3',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#6A0DAD', // Roxo forte
+        tabBarInactiveTintColor: '#9B4DCA', // Roxo mais fraco
       })}
     >
       <Tab.Screen name="Home" component={AlunoHomeScreen} options={{ headerShown: false }} />
@@ -102,8 +102,8 @@ const PersonalTabs = () => {
 
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#2196F3',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#6A0DAD', // Roxo forte
+        tabBarInactiveTintColor: '#9B4DCA', // Roxo mais fraco
       })}
     >
       <Tab.Screen name="Home" component={PersonalHomeScreen} options={{ headerShown: false }} />
@@ -183,11 +183,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#6A0DAD', // Roxo forte
   },
   splashText: {
     fontSize: 18,
-    color: '#666',
+    color: '#FFFFFF', // Branco para contraste com o fundo roxo
   },
 });
 

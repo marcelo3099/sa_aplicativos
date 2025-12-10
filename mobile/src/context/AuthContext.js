@@ -138,8 +138,11 @@ export const AuthProvider = ({ children }) => {
   // Função de logout
   const logout = async () => {
     try {
+      console.log('Logout iniciado...');
       await AsyncStorage.removeItem('user');
+      console.log('Usuário removido do AsyncStorage');
       dispatch({ type: LOGOUT });
+      console.log('Dispatch LOGOUT enviado, isAuthenticated deve ser false agora');
     } catch (error) {
       console.error('Erro no logout:', error);
     }

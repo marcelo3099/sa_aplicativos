@@ -13,7 +13,7 @@ import { useAuth } from '../../context/AuthContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const PersonalProfileScreen = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({
     name: user?.name || '',
@@ -64,7 +64,7 @@ const PersonalProfileScreen = () => {
               <TextInput
                 style={styles.infoInput}
                 value={editedData.telefone}
-                onChangeText={(text) => setEditedData({...editedData, telefone: text})}
+                onChangeText={(text) => setEditedData({ ...editedData, telefone: text })}
                 placeholder="Telefone"
               />
             ) : (
@@ -79,7 +79,7 @@ const PersonalProfileScreen = () => {
               <TextInput
                 style={styles.infoInput}
                 value={editedData.especializacao}
-                onChangeText={(text) => setEditedData({...editedData, especializacao: text})}
+                onChangeText={(text) => setEditedData({ ...editedData, especializacao: text })}
                 placeholder="Especialização"
               />
             ) : (
@@ -94,7 +94,7 @@ const PersonalProfileScreen = () => {
               <TextInput
                 style={styles.infoInput}
                 value={editedData.cref}
-                onChangeText={(text) => setEditedData({...editedData, cref: text})}
+                onChangeText={(text) => setEditedData({ ...editedData, cref: text })}
                 placeholder="CREF"
               />
             ) : (
@@ -109,7 +109,7 @@ const PersonalProfileScreen = () => {
               <TextInput
                 style={styles.infoInput}
                 value={editedData.experiencia_anos}
-                onChangeText={(text) => setEditedData({...editedData, experiencia_anos: text})}
+                onChangeText={(text) => setEditedData({ ...editedData, experiencia_anos: text })}
                 placeholder="Anos"
                 keyboardType="numeric"
               />
@@ -125,7 +125,7 @@ const PersonalProfileScreen = () => {
               <TextInput
                 style={styles.infoInput}
                 value={editedData.descricao}
-                onChangeText={(text) => setEditedData({...editedData, descricao: text})}
+                onChangeText={(text) => setEditedData({ ...editedData, descricao: text })}
                 placeholder="Descrição"
               />
             ) : (
@@ -135,8 +135,30 @@ const PersonalProfileScreen = () => {
         </View>
 
         <View style={styles.buttonContainer}>
+          {!isEditing && (
+            <TouchableOpacity style={styles.logoutButton} onPress={() => {
+              console.log('Botão Sair pressionado');
+              Alert.alert(
+                'Sair',
+                'Tem certeza que deseja sair do aplicativo?',
+                [
+                  { text: 'Cancelar', style: 'cancel' },
+                  {
+                    text: 'Sair',
+                    onPress: () => {
+                      console.log('Confirmado logout no alerta');
+                      logout();
+                    }
+                  },
+                ]
+              );
+            }}>
+              <Icon name="exit-to-app" size={20} color="#fff" />
+              <Text style={styles.logoutButtonText}>Sair</Text>
+            </TouchableOpacity>
+          )}
           {isEditing ? (
-            <>
+            <View style={styles.editButtonRow}>
               <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
                 <Text style={styles.saveButtonText}>Salvar</Text>
               </TouchableOpacity>
@@ -156,7 +178,7 @@ const PersonalProfileScreen = () => {
               >
                 <Text style={styles.cancelButtonText}>Cancelar</Text>
               </TouchableOpacity>
-            </>
+            </View>
           ) : (
             <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
               <Icon name="edit" size={20} color="#fff" />
@@ -172,7 +194,7 @@ const PersonalProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFFFFF', // Branco
   },
   content: {
     padding: 20,
@@ -190,16 +212,16 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#6A0DAD', // Roxo forte
   },
   userEmail: {
     fontSize: 16,
-    color: '#666',
+    color: '#9B4DCA', // Roxo mais fraco
     marginTop: 5,
   },
   userType: {
     fontSize: 16,
-    color: '#2196F3',
+    color: '#6A0DAD', // Roxo forte
     fontWeight: '600',
     marginTop: 5,
   },
@@ -230,38 +252,41 @@ const styles = StyleSheet.create({
   infoLabel: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: '#6A0DAD', // Roxo forte
     marginLeft: 10,
   },
   infoValue: {
     fontSize: 16,
-    color: '#666',
+    color: '#9B4DCA', // Roxo mais fraco
   },
   infoInput: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: '#6A0DAD', // Roxo forte
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#9B4DCA', // Roxo mais fraco
     borderRadius: 5,
     padding: 5,
     textAlign: 'right',
   },
   buttonContainer: {
+    flexDirection: 'column',
+  },
+  editButtonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   editButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#9B4DCA', // Roxo mais fraco
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 15,
     borderRadius: 10,
-    flex: 1,
+    marginTop: 10,
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#6A0DAD', // Roxo forte
     padding: 15,
     borderRadius: 10,
     flex: 0.48,
@@ -272,23 +297,38 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flex: 0.48,
   },
+  logoutButton: {
+    backgroundColor: '#6A0DAD', // Roxo forte
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
   editButtonText: {
-    color: '#fff',
+    color: '#FFFFFF', // Branco
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 5,
   },
   saveButtonText: {
-    color: '#fff',
+    color: '#FFFFFF', // Branco
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
   cancelButtonText: {
-    color: '#fff',
+    color: '#FFFFFF', // Branco
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  logoutButtonText: {
+    color: '#FFFFFF', // Branco
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 5,
   },
 });
 

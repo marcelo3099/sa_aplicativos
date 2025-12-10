@@ -272,7 +272,7 @@ const RegisterScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#6A0DAD', // Roxo forte como solicitado
   },
   scrollContainer: {
     flexGrow: 1,
@@ -286,15 +286,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#2196F3',
+    color: '#FFFFFF', // Branco para contraste com o fundo roxo
     marginBottom: 5,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#F5E6FF', // Roxo muito claro para contraste com o fundo roxo escuro
   },
   form: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF', // Fundo branco para o formulário para melhor leitura
     padding: 25,
     borderRadius: 10,
     shadowColor: '#000',
@@ -312,19 +312,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#6A0DAD', // Roxo forte para contraste com o fundo branco do formulário
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#9B4DCA', // Roxo mais fraco
     borderRadius: 8,
     padding: 15,
     fontSize: 16,
     backgroundColor: '#f9f9f9',
   },
   button: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#9B4DCA', // Roxo mais fraco para o botão
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -334,14 +334,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#bbb',
   },
   buttonText: {
-    color: '#fff',
+    color: '#FFFFFF', // Branco
     fontSize: 16,
     fontWeight: '600',
   },
   pickerContainer: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#9B4DCA', // Roxo mais fraco
     borderRadius: 8,
     backgroundColor: '#f9f9f9',
     overflow: 'hidden',
@@ -353,14 +353,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   selectedPickerOption: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#6A0DAD', // Roxo forte
   },
   pickerText: {
-    color: '#666',
+    color: '#9B4DCA', // Roxo mais fraco
     fontWeight: '500',
   },
   selectedPickerText: {
-    color: '#fff',
+    color: '#FFFFFF', // Branco
     fontWeight: '600',
   },
 });
